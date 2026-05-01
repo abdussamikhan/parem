@@ -1,0 +1,51 @@
+version: "3.9"
+services:
+  postgres:
+    image: postgres:16
+    environment:
+      POSTGRES_DB: poc_db
+      POSTGRES_USER: poc_user
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    networks:
+      - poc-network
+
+  ollama:
+    image: ollama/ollama
+    ports:
+      - "11434:11434"
+    volumes:
+      - ollama_data:/root/.ollama
+    networks:
+      - poc-network
+
+  n8n:
+    image: n8nio/n8n
+    ports:
+      - "5678:5678"
+    depends_on:
+      - postgres
+      - ollama
+    environment:
+      DB_TYPE: postgresdb
+      DB_POSTGRESDB_HOST: postgres
+      DB_POSTGRESDB_DATABASE: poc_db
+      DB_POSTGRESDB_USER: poc_user
+      DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      GROQ_API_KEY: ${GROQ_API_KEY}
+      OLLAMA_HC_URL: http://ollama:11434
+    volumes:
+      - n8n_data:/home/node/.n8n
+    networks:
+      - poc-network
+
+networks:
+  poc-network:
+
+volumes:
+  postgres_data:
+  ollama_data:
+  n8n_data:

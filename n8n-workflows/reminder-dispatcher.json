@@ -1,0 +1,86 @@
+{
+  "name": "Reminder Dispatcher",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "schedule-reminder",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "e44d5c4b-3c3b-4861-82cd-11f4d92a0122",
+      "name": "Webhook",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 1,
+      "position": [
+        220,
+        240
+      ],
+      "webhookId": "schedule-reminder"
+    },
+    {
+      "parameters": {
+        "resume": "useTime",
+        "waitTime": "={{ $json.body.reminderTime }}"
+      },
+      "id": "abc1234",
+      "name": "Wait",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1,
+      "position": [
+        440,
+        240
+      ]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "http://host.docker.internal:3000/api/cron/send-reminder",
+        "sendBody": true,
+        "contentType": "json",
+        "body": "={\n  \"scheduleId\": \"{{ $json.body.scheduleId }}\"\n}",
+        "options": {}
+      },
+      "id": "f55c8260-2647-49d7-84a1-0268571ebc34",
+      "name": "HTTP Request",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4,
+      "position": [
+        660,
+        240
+      ]
+    }
+  ],
+  "pinData": {},
+  "connections": {
+    "Webhook": {
+      "main": [
+        [
+          {
+            "node": "Wait",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    },
+    "Wait": {
+      "main": [
+        [
+          {
+            "node": "HTTP Request",
+            "type": "main",
+            "index": 0
+          }
+        ]
+      ]
+    }
+  },
+  "active": true,
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "versionId": "f78110b4-106e-4f11-9a41-b0db0a10ebf3",
+  "id": "cI8A2p2J0a12xU",
+  "tags": []
+}
