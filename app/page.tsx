@@ -27,7 +27,7 @@ export default function Dashboard() {
   const fetchDashboardData = async () => {
     setLoading(true);
     try {
-      const res = await fetch('/api/dashboard');
+      const res = await fetch('/api/dashboard', { cache: 'no-store' });
       const json = await res.json();
       setData(json);
     } catch (error) {
@@ -39,7 +39,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     fetchDashboardData();
-    const interval = setInterval(fetchDashboardData, 30000); // Refresh every 30s
+    const interval = setInterval(fetchDashboardData, 5000); // Refresh every 5s
     return () => clearInterval(interval);
   }, []);
 
