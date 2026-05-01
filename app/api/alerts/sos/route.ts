@@ -22,8 +22,8 @@ export async function POST(req: NextRequest) {
     await prisma.escalation.create({
       data: {
         patientId: patient.id,
-        reason: reason || 'External SOS Button Triggered',
-        status: 'OPEN',
+        trigger: 'SOS',
+        patientMessage: reason || 'External SOS Button Triggered',
       }
     });
     
@@ -35,15 +35,15 @@ export async function POST(req: NextRequest) {
     if (process.env.CARE_TEAM_WHATSAPP) {
       await sendWhatsAppMessage(
         process.env.CARE_TEAM_WHATSAPP, 
-        `🚨 URGENT: External SOS triggered for ${patient.name} (${patient.phone}). Reason: ${reason || 'Button press'}`
+        `🚨 URGENT: External SOS triggered for ${patient.firstName} (${patient.phone}). Reason: ${reason || 'Button press'}`
       );
     }
     
     // Notify Next of Kin
-    if (patient.nokPhone) {
+    if (patient.nextOfKinPhone) {
       await sendWhatsAppMessage(
-        patient.nokPhone, 
-        `⚠️ SOS ALERT: ${patient.name} has triggered an SOS alert. The care team has been notified.`
+        patient.nextOfKinPhone, 
+        `⚠️ SOS ALERT: ${patient.firstName} has triggered an SOS alert. The care team has been notified.`
       );
     }
     

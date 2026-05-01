@@ -1,10 +1,10 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { sendWhatsAppMessage } from '@/app/lib/twilio';
 import { groq } from '@/app/lib/groq';
 import { startOfDay, endOfDay } from 'date-fns';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     const todayStart = startOfDay(new Date());
     const todayEnd = endOfDay(new Date());

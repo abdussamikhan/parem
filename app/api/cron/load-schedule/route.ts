@@ -1,8 +1,8 @@
-import { NextRequest, NextResponse } from 'next/server';
+import { NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
 import { addDays, setHours, setMinutes, startOfDay } from 'date-fns';
 
-export async function POST(req: NextRequest) {
+export async function POST() {
   try {
     // Only accept POST requests from our trusted n8n instance or cron scheduler
     // You could add header authorization here

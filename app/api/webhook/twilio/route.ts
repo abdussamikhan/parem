@@ -120,7 +120,8 @@ export async function POST(req: NextRequest) {
         
         await prisma.schedule.update({
           where: { id: latestSchedule.id },
-          data: { status }
+          // eslint-disable-next-line @typescript-eslint/no-explicit-any
+          data: { status: status as any }
         });
         
         await prisma.adherenceLog.create({
