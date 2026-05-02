@@ -3,24 +3,26 @@
   "version": "0.1.0",
   "private": true,
   "scripts": {
-    "dev":        "next dev",
-    "build":      "next build",
-    "start":      "next start",
-    "lint":       "next lint",
-    "test":       "vitest run",
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint",
+    "test": "vitest run",
     "test:watch": "vitest",
-    "test:ui":    "vitest --ui",
+    "test:ui": "vitest --ui",
     "test:cover": "vitest run --coverage",
-    "db:seed":    "ts-node --project tsconfig.seed.json prisma/seed.ts",
-    "db:reset":   "ts-node --project tsconfig.seed.json scripts/reset-db.ts",
-    "db:push":    "prisma db push"
+    "db:seed": "ts-node --project tsconfig.seed.json prisma/seed.ts",
+    "db:reset": "ts-node --project tsconfig.seed.json scripts/reset-db.ts",
+    "db:push": "prisma db push"
   },
   "dependencies": {
     "@prisma/adapter-pg": "^7.8.0",
     "@prisma/client": "^5.22.0",
+    "bcryptjs": "^3.0.3",
     "clsx": "^2.1.1",
     "date-fns": "^4.1.0",
     "groq-sdk": "^1.1.2",
+    "jose": "^6.2.3",
     "lucide-react": "^1.14.0",
     "next": "14.2.35",
     "pg": "^8.20.0",
@@ -31,6 +33,7 @@
     "twilio": "^6.0.0"
   },
   "devDependencies": {
+    "@types/bcryptjs": "^2.4.6",
     "@types/node": "^20",
     "@types/pg": "^8.20.0",
     "@types/react": "^18",

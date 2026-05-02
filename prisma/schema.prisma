@@ -197,3 +197,22 @@ enum RiskLevel {
   HIGH
 }
 
+// ─── Auth: Staff Users ────────────────────────────────────────────────────────
+
+enum UserRole {
+  ADMIN
+  PHYSICIAN
+  NURSE
+  COORDINATOR
+}
+
+model User {
+  id           String   @id @default(cuid())
+  email        String   @unique
+  passwordHash String
+  fullName     String
+  role         UserRole
+  createdAt    DateTime @default(now())
+
+  @@map("users")
+}
