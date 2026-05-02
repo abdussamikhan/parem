@@ -23,6 +23,7 @@ services:
 
   n8n:
     image: n8nio/n8n
+    restart: unless-stopped
     ports:
       - "5678:5678"
     depends_on:
@@ -32,12 +33,29 @@ services:
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgres
       DB_POSTGRESDB_DATABASE: poc_db
+      DB_POSTGRESDB_SCHEMA: n8n
       DB_POSTGRESDB_USER: poc_user
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-https}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL}
       GROQ_API_KEY: ${GROQ_API_KEY}
-      OLLAMA_HC_URL: http://ollama:11434
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      OLLAMA_QWEN_KEY: ${OLLAMA_QWEN_KEY:-}
+      OLLAMA_LLAMA_KEY: ${OLLAMA_LLAMA_KEY:-}
+      OLLAMA_BIO_KEY: ${OLLAMA_BIO_KEY:-}
+      OLLAMA_WHISPER_KEY: ${OLLAMA_WHISPER_KEY:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
     volumes:
       - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - poc-network
 
@@ -45,17 +63,27 @@ services:
     build:
       context: .
       dockerfile: Dockerfile
+    restart: unless-stopped
     ports:
       - "3000:3000"
     depends_on:
       - postgres
     environment:
-      - DATABASE_URL=postgresql://poc_user:${POSTGRES_PASSWORD}@postgres:5432/poc_db?schema=public
+      - DATABASE_URL=postgresql://poc_user:${POSTGRES_PASSWORD}@postgres:5432/poc_db?schema=app
       - TWILIO_ACCOUNT_SID=${TWILIO_ACCOUNT_SID}
       - TWILIO_AUTH_TOKEN=${TWILIO_AUTH_TOKEN}
-      - TWILIO_PHONE_NUMBER=${TWILIO_PHONE_NUMBER}
-      - CARE_TEAM_PHONE=${CARE_TEAM_PHONE}
+      - TWILIO_WHATSAPP_NUMBER=${TWILIO_WHATSAPP_NUMBER}
+      - TWILIO_WEBHOOK_URL=${TWILIO_WEBHOOK_URL}
+      - CARE_TEAM_WHATSAPP=${CARE_TEAM_WHATSAPP}
       - GROQ_API_KEY=${GROQ_API_KEY}
+      - OLLAMA_URL=http://ollama:11434
+      - OLLAMA_BASE_URL=${OLLAMA_BASE_URL:-}
+      - OLLAMA_QWEN_KEY=${OLLAMA_QWEN_KEY:-}
+      - OLLAMA_LLAMA_KEY=${OLLAMA_LLAMA_KEY:-}
+      - OLLAMA_BIO_KEY=${OLLAMA_BIO_KEY:-}
+      - OLLAMA_WHISPER_KEY=${OLLAMA_WHISPER_KEY:-}
+      - AZURE_TTS_KEY=${AZURE_TTS_KEY:-}
+      - AZURE_TTS_REGION=${AZURE_TTS_REGION:-eastus}
     networks:
       - poc-network
 

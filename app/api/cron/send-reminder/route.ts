@@ -39,8 +39,15 @@ export async function POST(req: NextRequest) {
       `Hi ${patient.firstName}, it's time to take your ${medicine.medicineName} (${medicine.dose}). Please reply "yes" when you've taken it.`;
       
     await sendWhatsAppMessage(patient.phone, reminderMessage);
+
+    // Bug fix: mark schedule as SENT so it doesn't re-fire on the next cron tick
+    await prisma.schedule.update({
+      where: { id: schedule.id },
+      data:  { status: 'SENT' },
+    });
     
     return NextResponse.json({ success: true, messageSent: reminderMessage });
+
     
   } catch (error) {
     console.error('Send Reminder Error:', error);

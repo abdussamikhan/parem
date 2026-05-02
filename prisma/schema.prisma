@@ -8,34 +8,42 @@ datasource db {
 }
 
 model Patient {
-  id              String            @id @default(cuid())
-  firstName       String
-  lastName        String
-  age             Int
-  gender          String
-  phone           String            @unique
-  nextOfKinName   String?
-  nextOfKinPhone  String?
-  wakeTime        String?
-  breakfastTime   String?
-  lunchTime       String?
-  dinnerTime      String?
-  bedTime         String?
-  consentGiven    Boolean           @default(false)
-  createdAt       DateTime          @default(now())
-  medicines       Medicine[]
-  schedules       Schedule[]
-  adherenceLogs   AdherenceLog[]
-  conversationLogs ConversationLog[]
-  escalations     Escalation[]
+  id                String            @id @default(cuid())
+  firstName         String
+  lastName          String
+  age               Int
+  gender            String
+  phone             String            @unique
+  nextOfKinName     String?
+  nextOfKinPhone    String?
+  wakeTime          String?
+  breakfastTime     String?
+  lunchTime         String?
+  dinnerTime        String?
+  bedTime           String?
+  consentGiven      Boolean           @default(false)
+  // Sprint A additions
+  voicePreferred    Boolean           @default(false)
+  familyGroupMode   Boolean           @default(false)
+  whatsappGroupId   String?
+  conditionCategory String?
+  createdAt         DateTime          @default(now())
+  medicines         Medicine[]
+  schedules         Schedule[]
+  adherenceLogs     AdherenceLog[]
+  conversationLogs  ConversationLog[]
+  escalations       Escalation[]
+  familyMembers     FamilyMember[]
+  appointments      Appointment[]
+  riskScores        RiskScore[]
 
   @@map("patients")
 }
 
 model Medicine {
-  id                String         @id @default(cuid())
+  id                String            @id @default(cuid())
   patientId         String
-  patient           Patient        @relation(fields: [patientId], references: [id])
+  patient           Patient           @relation(fields: [patientId], references: [id])
   medicineName      String
   dose              String
   frequency         String
@@ -49,11 +57,16 @@ model Medicine {
 }
 
 enum TimingInstruction {
+  UPON_WAKING
+  MORNING_EMPTY_STOMACH
   BEFORE_BREAKFAST
   AFTER_BREAKFAST
   WITH_LUNCH
+  BEFORE_LUNCH
+  AFTER_LUNCH
+  BEFORE_DINNER
+  AFTER_DINNER
   BEFORE_BED
-  MORNING_EMPTY_STOMACH
 }
 
 model Schedule {
@@ -78,12 +91,12 @@ enum ScheduleStatus {
 }
 
 model AdherenceLog {
-  id             String           @id @default(cuid())
+  id             String       @id @default(cuid())
   patientId      String
-  patient        Patient          @relation(fields: [patientId], references: [id])
+  patient        Patient      @relation(fields: [patientId], references: [id])
   medicineId     String
-  medicine       Medicine         @relation(fields: [medicineId], references: [id])
-  logDate        DateTime         @db.Date
+  medicine       Medicine     @relation(fields: [medicineId], references: [id])
+  logDate        DateTime     @db.Date
   scheduledTime  DateTime
   actualResponse ResponseType
   responseTime   DateTime?
@@ -100,14 +113,14 @@ enum ResponseType {
 }
 
 model ConversationLog {
-  id          String              @id @default(cuid())
+  id          String               @id @default(cuid())
   patientId   String
-  patient     Patient             @relation(fields: [patientId], references: [id])
+  patient     Patient              @relation(fields: [patientId], references: [id])
   messageIn   String
   messageOut  String?
   category    ConversationCategory
-  escalated   Boolean             @default(false)
-  createdAt   DateTime            @default(now())
+  escalated   Boolean              @default(false)
+  createdAt   DateTime             @default(now())
 
   @@map("conversation_logs")
 }
@@ -128,6 +141,7 @@ model Escalation {
   aiResponse     String?
   alertSentAt    DateTime?
   outcome        String?
+  createdAt      DateTime          @default(now())
 
   @@map("escalations")
 }
@@ -136,3 +150,50 @@ enum EscalationTrigger {
   SYMPTOM
   SOS
 }
+
+// ─── Sprint A: New Models ─────────────────────────────────────────────────────
+
+model FamilyMember {
+  id           String   @id @default(cuid())
+  patientId    String
+  patient      Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  name         String
+  phone        String
+  relationship String?
+  consentGiven Boolean  @default(false)
+  createdAt    DateTime @default(now())
+
+  @@map("family_members")
+}
+
+model Appointment {
+  id          String   @id @default(cuid())
+  patientId   String
+  patient     Patient  @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  title       String
+  scheduledAt DateTime
+  attended    Boolean  @default(false)
+  notes       String?
+  createdAt   DateTime @default(now())
+
+  @@map("appointments")
+}
+
+model RiskScore {
+  id           String    @id @default(cuid())
+  patientId    String
+  patient      Patient   @relation(fields: [patientId], references: [id], onDelete: Cascade)
+  calculatedAt DateTime  @default(now())
+  score        RiskLevel
+  rawFeatures  Json?
+  rationale    String?
+
+  @@map("risk_scores")
+}
+
+enum RiskLevel {
+  LOW
+  MEDIUM
+  HIGH
+}
+

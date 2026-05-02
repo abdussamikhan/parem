@@ -4,109 +4,229 @@ import { PrismaClient, TimingInstruction } from '@prisma/client'
 const prisma = new PrismaClient()
 
 async function main() {
-  const patientsData = [
+  console.log('Seeding database...')
+
+  // ─── Existing patients (preserved) ──────────────────────────────────────────
+
+  const basePatients = [
     {
-      firstName: 'Ahmad',
-      lastName: 'Al-Farsi',
-      age: 65,
-      gender: 'Male',
-      phone: '+966500000001',
+      firstName:     'Ahmad',
+      lastName:      'Al-Farsi',
+      age:           65,
+      gender:        'Male',
+      phone:         '+966500000001',
       nextOfKinName: 'Fatima Al-Farsi',
-      nextOfKinPhone: '+966500000002',
-      wakeTime: '06:00',
+      nextOfKinPhone:'+966500000002',
+      wakeTime:      '06:00',
       breakfastTime: '07:00',
-      lunchTime: '13:00',
-      dinnerTime: '19:00',
-      bedTime: '22:00',
-      consentGiven: true,
+      lunchTime:     '13:00',
+      dinnerTime:    '19:00',
+      bedTime:       '22:00',
+      consentGiven:  true,
+      conditionCategory: 'Diabetes',
       medicines: {
         create: [
           {
-            medicineName: 'Metformin',
-            dose: '500mg',
-            frequency: 'Twice daily',
+            medicineName:      'Metformin',
+            dose:              '500mg',
+            frequency:         'Twice daily',
             timingInstruction: TimingInstruction.AFTER_BREAKFAST,
-            durationDays: 30,
-            startDate: new Date(),
+            durationDays:      30,
+            startDate:         new Date(),
           },
           {
-            medicineName: 'Amlodipine',
-            dose: '5mg',
-            frequency: 'Once daily',
+            medicineName:      'Amlodipine',
+            dose:              '5mg',
+            frequency:         'Once daily',
             timingInstruction: TimingInstruction.BEFORE_BED,
-            durationDays: 30,
-            startDate: new Date(),
-          }
-        ]
-      }
+            durationDays:      30,
+            startDate:         new Date(),
+          },
+        ],
+      },
     },
     {
-      firstName: 'Sarah',
-      lastName: 'Al-Qahtani',
-      age: 55,
-      gender: 'Female',
-      phone: '+966500000003',
+      firstName:     'Sarah',
+      lastName:      'Al-Qahtani',
+      age:           55,
+      gender:        'Female',
+      phone:         '+966500000003',
       nextOfKinName: 'Omar Al-Qahtani',
-      nextOfKinPhone: '+966500000004',
-      wakeTime: '07:00',
+      nextOfKinPhone:'+966500000004',
+      wakeTime:      '07:00',
       breakfastTime: '08:00',
-      lunchTime: '14:00',
-      dinnerTime: '20:00',
-      bedTime: '23:00',
-      consentGiven: true,
+      lunchTime:     '14:00',
+      dinnerTime:    '20:00',
+      bedTime:       '23:00',
+      consentGiven:  true,
+      conditionCategory: 'Hypertension',
       medicines: {
         create: [
           {
-            medicineName: 'Atorvastatin',
-            dose: '20mg',
-            frequency: 'Once daily',
+            medicineName:      'Atorvastatin',
+            dose:              '20mg',
+            frequency:         'Once daily',
             timingInstruction: TimingInstruction.BEFORE_BED,
-            durationDays: 30,
-            startDate: new Date(),
-          }
-        ]
-      }
+            durationDays:      30,
+            startDate:         new Date(),
+          },
+        ],
+      },
     },
-    // Adding a few more to reach 10
-    ...Array.from({ length: 8 }).map((_, i) => ({
-      firstName: `TestPatient${i + 3}`,
-      lastName: 'Synthetic',
-      age: 40 + i,
-      gender: i % 2 === 0 ? 'Male' : 'Female',
-      phone: `+96650000001${i}`,
-      nextOfKinName: `NOK${i + 3}`,
-      nextOfKinPhone: `+96650000002${i}`,
-      wakeTime: '06:30',
-      breakfastTime: '07:30',
-      lunchTime: '13:30',
-      dinnerTime: '19:30',
-      bedTime: '22:30',
-      consentGiven: true,
-      medicines: {
-        create: [
-          {
-            medicineName: 'Vitamin D',
-            dose: '1000 IU',
-            frequency: 'Once daily',
-            timingInstruction: TimingInstruction.WITH_LUNCH,
-            durationDays: 30,
-            startDate: new Date(),
-          }
-        ]
-      }
-    }))
   ]
 
-  console.log('Seeding database...')
-  for (const patient of patientsData) {
-    const createdPatient = await prisma.patient.upsert({
-      where: { phone: patient.phone },
+  // ─── Sprint B: Voice-preferred patient (Arabic voice note sender) ─────────
+
+  const voicePatients = [
+    {
+      firstName:        'Khalid',
+      lastName:         'Al-Rashidi',
+      age:              72,
+      gender:           'Male',
+      phone:            '+966500000020',
+      nextOfKinName:    'Nora Al-Rashidi',
+      nextOfKinPhone:   '+966500000021',
+      wakeTime:         '05:30',
+      breakfastTime:    '06:30',
+      lunchTime:        '12:30',
+      dinnerTime:       '18:30',
+      bedTime:          '21:30',
+      consentGiven:     true,
+      voicePreferred:   true,           // ← Sprint B: voice-preferred
+      conditionCategory:'Heart Disease',
+      medicines: {
+        create: [
+          {
+            medicineName:      'Aspirin',
+            dose:              '100mg',
+            frequency:         'Once daily',
+            timingInstruction: TimingInstruction.AFTER_BREAKFAST,
+            durationDays:      90,
+            startDate:         new Date(),
+          },
+          {
+            medicineName:      'Bisoprolol',
+            dose:              '2.5mg',
+            frequency:         'Once daily',
+            timingInstruction: TimingInstruction.UPON_WAKING,
+            durationDays:      90,
+            startDate:         new Date(),
+          },
+        ],
+      },
+    },
+    // Family-group patient (needed for Sprint D)
+    {
+      firstName:        'Maryam',
+      lastName:         'Al-Dosari',
+      age:              68,
+      gender:           'Female',
+      phone:            '+966500000022',
+      nextOfKinName:    'Abdullah Al-Dosari',
+      nextOfKinPhone:   '+966500000023',
+      wakeTime:         '06:00',
+      breakfastTime:    '07:30',
+      lunchTime:        '13:00',
+      dinnerTime:       '19:30',
+      bedTime:          '22:00',
+      consentGiven:     true,
+      familyGroupMode:  true,           // ← Sprint D placeholder
+      conditionCategory:'Diabetes',
+      medicines: {
+        create: [
+          {
+            medicineName:      'Insulin Glargine',
+            dose:              '10 units',
+            frequency:         'Once daily',
+            timingInstruction: TimingInstruction.BEFORE_BED,
+            durationDays:      30,
+            startDate:         new Date(),
+          },
+        ],
+      },
+    },
+    // High-risk patient (missed adherence, older age)
+    {
+      firstName:        'Ibrahim',
+      lastName:         'Al-Otaibi',
+      age:              80,
+      gender:           'Male',
+      phone:            '+966500000024',
+      nextOfKinName:    'Salma Al-Otaibi',
+      nextOfKinPhone:   '+966500000025',
+      wakeTime:         '07:00',
+      breakfastTime:    '08:00',
+      lunchTime:        '13:00',
+      dinnerTime:       '19:00',
+      bedTime:          '22:00',
+      consentGiven:     true,
+      conditionCategory:'COPD',
+      medicines: {
+        create: [
+          {
+            medicineName:      'Salbutamol Inhaler',
+            dose:              '2 puffs',
+            frequency:         'As needed',
+            timingInstruction: TimingInstruction.MORNING_EMPTY_STOMACH,
+            durationDays:      60,
+            startDate:         new Date(),
+          },
+          {
+            medicineName:      'Prednisolone',
+            dose:              '5mg',
+            frequency:         'Once daily',
+            timingInstruction: TimingInstruction.AFTER_BREAKFAST,
+            durationDays:      14,
+            startDate:         new Date(),
+          },
+        ],
+      },
+    },
+  ]
+
+  // ─── Synthetic patients (pad to 10 baseline) ──────────────────────────────
+
+  const syntheticPatients = Array.from({ length: 8 }).map((_, i) => ({
+    firstName:     `TestPatient${i + 3}`,
+    lastName:      'Synthetic',
+    age:           40 + i,
+    gender:        i % 2 === 0 ? 'Male' : 'Female',
+    phone:         `+96650000001${i}`,
+    nextOfKinName: `NOK${i + 3}`,
+    nextOfKinPhone:`+96650000002${i}`,
+    wakeTime:      '06:30',
+    breakfastTime: '07:30',
+    lunchTime:     '13:30',
+    dinnerTime:    '19:30',
+    bedTime:       '22:30',
+    consentGiven:  true,
+    medicines: {
+      create: [
+        {
+          medicineName:      'Vitamin D',
+          dose:              '1000 IU',
+          frequency:         'Once daily',
+          timingInstruction: TimingInstruction.WITH_LUNCH,
+          durationDays:      30,
+          startDate:         new Date(),
+        },
+      ],
+    },
+  }))
+
+  // ─── Upsert all ────────────────────────────────────────────────────────────
+
+  for (const patient of [...basePatients, ...voicePatients, ...syntheticPatients]) {
+    const { medicines, ...data } = patient
+    const created = await prisma.patient.upsert({
+      where:  { phone: data.phone },
       update: {},
-      create: patient,
+      create: { ...data, medicines },
     })
-    console.log(`Created patient: ${createdPatient.firstName} ${createdPatient.lastName}`)
+    console.log(`  ✓ ${created.firstName} ${created.lastName} (${created.phone})`)
   }
-  console.log('Seeding finished.')
+
+  console.log('\nSeeding finished.')
 }
 
 main()

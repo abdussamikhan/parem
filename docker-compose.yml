@@ -24,21 +24,42 @@ services:
 
   n8n:
     image: n8nio/n8n
+    restart: unless-stopped
     ports:
       - "5678:5678"
     depends_on:
       - postgres
       - ollama
     environment:
+      # n8n Postgres backing store
       DB_TYPE: postgresdb
       DB_POSTGRESDB_HOST: postgres
       DB_POSTGRESDB_DATABASE: poc_db
+      DB_POSTGRESDB_SCHEMA: n8n
       DB_POSTGRESDB_USER: poc_user
       DB_POSTGRESDB_PASSWORD: ${POSTGRES_PASSWORD}
+      # n8n itself
+      N8N_HOST: ${N8N_HOST:-localhost}
+      N8N_PORT: 5678
+      N8N_PROTOCOL: ${N8N_PROTOCOL:-http}
+      WEBHOOK_URL: ${N8N_WEBHOOK_URL:-http://localhost:5678}
+      # Secrets available inside n8n credentials / expressions
       GROQ_API_KEY: ${GROQ_API_KEY}
-      OLLAMA_HC_URL: http://ollama:11434
+      OLLAMA_URL: http://ollama:11434
+      OLLAMA_BASE_URL: ${OLLAMA_BASE_URL:-}
+      OLLAMA_QWEN_KEY: ${OLLAMA_QWEN_KEY:-}
+      OLLAMA_LLAMA_KEY: ${OLLAMA_LLAMA_KEY:-}
+      OLLAMA_BIO_KEY: ${OLLAMA_BIO_KEY:-}
+      OLLAMA_WHISPER_KEY: ${OLLAMA_WHISPER_KEY:-}
+      TWILIO_ACCOUNT_SID: ${TWILIO_ACCOUNT_SID}
+      TWILIO_AUTH_TOKEN: ${TWILIO_AUTH_TOKEN}
     volumes:
       - n8n_data:/home/node/.n8n
+    healthcheck:
+      test: ["CMD-SHELL", "wget -q --spider http://localhost:5678/healthz || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
     networks:
       - poc-network
 

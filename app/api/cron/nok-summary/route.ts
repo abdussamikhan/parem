@@ -1,68 +1,108 @@
-import { NextResponse } from 'next/server';
-import { prisma } from '@/app/lib/prisma';
-import { sendWhatsAppMessage } from '@/app/lib/twilio';
-import { groq } from '@/app/lib/groq';
-import { startOfDay, endOfDay } from 'date-fns';
+/**
+ * POST /api/cron/nok-summary
+ *
+ * Weekly cron: generates and sends family health summaries for all consented
+ * patients that have at least one NOK or FamilyMember contact.
+ *
+ * Replaces the old single-LLM Groq implementation with:
+ *   - llmRouter (NOK_SUMMARY → Qwen 2.5, Sprint A/D routing)
+ *   - FamilyMember table support (group + individual)
+ *   - CRON_SECRET auth header
+ *   - 7-day rolling window (not today-only)
+ *
+ * Trigger: n8n weekly schedule → POST /api/cron/nok-summary
+ *          with header x-cron-secret: $CRON_SECRET
+ */
 
-export async function POST() {
-  try {
-    const todayStart = startOfDay(new Date());
-    const todayEnd = endOfDay(new Date());
-    
-    // Get all patients with NOK phone
-    const patients = await prisma.patient.findMany({
-      where: {
-        nextOfKinPhone: { not: null }
-      },
-      include: {
-        adherenceLogs: {
-          where: {
-            logDate: {
-              gte: todayStart,
-              lte: todayEnd,
-            }
-          },
-          include: {
-            medicine: true
-          }
+import { NextRequest, NextResponse } from 'next/server';
+import { prisma } from '@/app/lib/prisma';
+import { buildNOKSummary } from '@/app/lib/nokSummary';
+import { sendWhatsAppMessage } from '@/app/lib/twilio';
+
+export const dynamic = 'force-dynamic';
+
+export async function POST(req: NextRequest) {
+  return runNOKCron(req);
+}
+
+
+async function runNOKCron(req: NextRequest) {
+  // ── Auth guard ──────────────────────────────────────────────────────────────
+  const secret = process.env.CRON_SECRET;
+  if (secret) {
+    const authHeader = req.headers.get('x-cron-secret') ?? req.headers.get('authorization');
+    const token = authHeader?.replace(/^Bearer\s+/i, '');
+    if (token !== secret) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+  }
+
+  const startedAt = new Date();
+
+  // ── Patients eligible for NOK summary ──────────────────────────────────────
+  // Include patients that have:
+  //   - consent given
+  //   - at least one FamilyMember with consent, OR a legacy nextOfKinPhone
+  const patients = await prisma.patient.findMany({
+    where: {
+      consentGiven: true,
+      OR: [
+        { nextOfKinPhone: { not: null } },
+        { familyMembers:  { some: { consentGiven: true } } },
+        { familyGroupMode: true, whatsappGroupId: { not: null } },
+      ],
+    },
+    select: { id: true, firstName: true, lastName: true },
+  });
+
+  console.log(`[nok-cron] Processing ${patients.length} eligible patients`);
+
+  const results: Array<{
+    patientId: string;
+    name:      string;
+    sent:      number;
+    failed:    number;
+  }> = [];
+  const errors: Array<{ patientId: string; error: string }> = [];
+
+  for (const p of patients) {
+    try {
+      const summary = await buildNOKSummary(p.id);
+
+      let sent = 0;
+      let failed = 0;
+
+      for (const recipient of summary.recipients) {
+        try {
+          await sendWhatsAppMessage(recipient.phone, summary.summaryText);
+          sent++;
+          console.log(`[nok-cron] Sent to ${recipient.name} for patient ${p.firstName} ${p.lastName}`);
+        } catch (err) {
+          console.error(`[nok-cron] Send failed for ${recipient.phone}:`, err);
+          failed++;
         }
       }
-    });
-    
-    let summariesSent = 0;
-    
-    for (const patient of patients) {
-      if (!patient.nextOfKinPhone || patient.adherenceLogs.length === 0) continue;
-      
-      const takenCount = patient.adherenceLogs.filter(log => log.actualResponse === 'TAKEN').length;
-      const missedCount = patient.adherenceLogs.filter(log => log.actualResponse === 'SKIPPED').length;
-      
-      const logDetails = patient.adherenceLogs.map(log => 
-        `- ${log.medicine.medicineName}: ${log.actualResponse} at ${log.responseTime?.toLocaleTimeString() || 'Unknown'}`
-      ).join('\n');
-      
-      const prompt = `You are an AI assistant for a clinic. Write a warm, factual daily summary (under 50 words) to ${patient.nextOfKinName} (Next of Kin) about ${patient.firstName}'s medication adherence today. 
-      Details: Taken: ${takenCount}, Missed: ${missedCount}.
-      Log:\n${logDetails}`;
-      
-      const chatCompletion = await groq.chat.completions.create({
-        messages: [{ role: 'user', content: prompt }],
-        model: 'llama-3.3-70b-versatile',
-        temperature: 0.3,
-        max_tokens: 150,
-      });
-      
-      const summaryMessage = chatCompletion.choices[0]?.message?.content || 
-        `Daily update: ${patient.firstName} took ${takenCount} and missed ${missedCount} medications today.`;
-        
-      await sendWhatsAppMessage(patient.nextOfKinPhone, summaryMessage);
-      summariesSent++;
+
+      results.push({ patientId: p.id, name: `${p.firstName} ${p.lastName}`, sent, failed });
+
+    } catch (err) {
+      console.error(`[nok-cron] Failed to process ${p.id}:`, err);
+      errors.push({ patientId: p.id, error: (err as Error).message });
     }
-    
-    return NextResponse.json({ success: true, summariesSent });
-    
-  } catch (error) {
-    console.error('NOK Summary Error:', error);
-    return NextResponse.json({ error: 'Internal Server Error' }, { status: 500 });
   }
+
+  const totalSent = results.reduce((acc, r) => acc + r.sent, 0);
+
+  const response = {
+    startedAt:  startedAt.toISOString(),
+    patients:   patients.length,
+    processed:  results.length,
+    totalSent,
+    errors:     errors.length,
+    results,
+    errorDetails: errors,
+  };
+
+  console.log(`[nok-cron] Done. Sent ${totalSent} summaries, ${errors.length} errors.`);
+  return NextResponse.json(response);
 }
