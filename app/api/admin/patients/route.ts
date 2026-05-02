@@ -80,6 +80,19 @@ export async function POST(req: NextRequest) {
         conditionCategory: conditionCategory ?? null,
       },
     });
+
+    // Create Audit Log
+    const session = await getSession();
+    await prisma.auditLog.create({
+      data: {
+        action: 'CREATE_PATIENT',
+        entityType: 'Patient',
+        entityId: patient.id,
+        details: `Created patient ${firstName} ${lastName}`,
+        performedBy: session?.email || 'Unknown User',
+      }
+    });
+
     return NextResponse.json(patient, { status: 201 });
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';

@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+import { getSession } from '@/app/lib/auth';
 
 /**
  * PATCH /api/alerts/sos/[id]
@@ -31,6 +32,17 @@ export async function PATCH(
     const updated = await prisma.escalation.update({
       where: { id },
       data:  { outcome: 'acknowledged' },
+    });
+
+    const session = await getSession();
+    await prisma.auditLog.create({
+      data: {
+        action: 'ACKNOWLEDGE_SOS',
+        entityType: 'Escalation',
+        entityId: id,
+        details: `Acknowledged SOS escalation for patient ${updated.patientId}`,
+        performedBy: session?.email || 'Unknown User',
+      }
     });
 
     return NextResponse.json({ success: true, escalation: updated });

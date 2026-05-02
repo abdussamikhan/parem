@@ -63,5 +63,17 @@ export async function POST(
       startDate: new Date(startDate),
     },
   });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'ADD_MEDICINE',
+      entityType: 'Medicine',
+      entityId: medicine.id,
+      details: `Added medicine ${medicineName} for patient ${patientId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
+
   return NextResponse.json(medicine, { status: 201 });
 }

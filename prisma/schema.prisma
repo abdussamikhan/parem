@@ -217,3 +217,15 @@ model User {
 
   @@map("users")
 }
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  action      String
+  entityType  String?
+  entityId    String?
+  details     String?  @db.Text
+  performedBy String?
+  createdAt   DateTime @default(now())
+
+  @@map("audit_logs")
+}

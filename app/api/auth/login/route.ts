@@ -52,6 +52,16 @@ export async function POST(req: NextRequest) {
     };
     const token = await signToken(payload);
 
+    await prisma.auditLog.create({
+      data: {
+        action: 'USER_LOGIN',
+        entityType: 'User',
+        entityId: user.id,
+        details: `User ${email} logged in successfully`,
+        performedBy: email,
+      }
+    });
+
     // ── Set HttpOnly cookie ─────────────────────────────────────────────────
     const res = NextResponse.json({
       ok:       true,

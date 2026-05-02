@@ -79,6 +79,18 @@ export async function PUT(
         conditionCategory: body.conditionCategory ?? null,
       },
     });
+
+    const session = await getSession();
+    await prisma.auditLog.create({
+      data: {
+        action: 'UPDATE_PATIENT',
+        entityType: 'Patient',
+        entityId: id,
+        details: `Updated patient ${id}`,
+        performedBy: session?.email || 'Unknown User',
+      }
+    });
+
     return NextResponse.json(updated);
   } catch (e: unknown) {
     const msg = e instanceof Error ? e.message : 'Unknown error';
@@ -106,6 +118,17 @@ export async function DELETE(
     prisma.medicine.deleteMany({ where: { patientId: id } }),
     prisma.patient.delete({ where: { id } }),
   ]);
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'DELETE_PATIENT',
+      entityType: 'Patient',
+      entityId: id,
+      details: `Deleted patient ${id} and related records`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }

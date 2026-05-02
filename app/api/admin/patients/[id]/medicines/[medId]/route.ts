@@ -44,6 +44,18 @@ export async function PUT(
       startDate:          startDate          ? new Date(startDate) : undefined,
     },
   });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'UPDATE_MEDICINE',
+      entityType: 'Medicine',
+      entityId: medId,
+      details: `Updated medicine ${medId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -54,7 +66,7 @@ export async function DELETE(
   const deny = await requireAdmin();
   if (deny) return deny;
 
-  const { medId } = await params;
+  const { id: patientId, medId } = await params;
 
   // Delete linked records before deleting the medicine
   await prisma.$transaction([
@@ -62,6 +74,17 @@ export async function DELETE(
     prisma.schedule.deleteMany({ where: { medicineId: medId } }),
     prisma.medicine.delete({ where: { id: medId } }),
   ]);
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'DELETE_MEDICINE',
+      entityType: 'Medicine',
+      entityId: medId,
+      details: `Deleted medicine ${medId} from patient ${patientId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
 
   return NextResponse.json({ ok: true });
 }

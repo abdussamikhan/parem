@@ -56,5 +56,16 @@ export async function POST(
       consentGiven: !!consentGiven,
     },
   });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'ADD_FAMILY_MEMBER',
+      entityType: 'FamilyMember',
+      entityId: member.id,
+      details: `Added family member ${name} for patient ${patientId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
   return NextResponse.json(member, { status: 201 });
 }

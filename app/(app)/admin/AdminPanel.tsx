@@ -1,11 +1,12 @@
 'use client';
 import { useState } from 'react';
-import { Database, Users, Pill } from 'lucide-react';
+import { Database, Users, Pill, FileText } from 'lucide-react';
 import { PatientsTab } from './PatientsTab';
+import { AuditLogsTab } from './AuditLogsTab';
 import { Toaster } from '@/app/components/Toaster';
 import { useToast } from '@/app/hooks/useToast';
 
-type Tab = 'patients' | 'family' | 'medicines';
+type Tab = 'patients' | 'family' | 'medicines' | 'audit_logs';
 
 export function AdminPanel() {
   const [tab, setTab] = useState<Tab>('patients');
@@ -15,6 +16,7 @@ export function AdminPanel() {
     { id: 'patients',  label: 'Patients',        icon: Database },
     { id: 'family',    label: 'Family Members',   icon: Users },
     { id: 'medicines', label: 'Medicines',         icon: Pill },
+    { id: 'audit_logs', label: 'Audit Log',       icon: FileText },
   ];
 
   return (
@@ -22,7 +24,7 @@ export function AdminPanel() {
       <header className="adm-header">
         <div>
           <h1 className="adm-title">Admin Data Manager</h1>
-          <p className="adm-sub">Create, edit, and delete patients, family members, and medicines.</p>
+          <p className="adm-sub">Create, edit, and delete patients, family members, medicines, and view audit logs.</p>
         </div>
       </header>
 
@@ -40,7 +42,11 @@ export function AdminPanel() {
       </div>
 
       <div className="adm-body">
-        <PatientsTab toast={toast} mode={tab} />
+        {tab === 'audit_logs' ? (
+          <AuditLogsTab />
+        ) : (
+          <PatientsTab toast={toast} mode={tab} />
+        )}
       </div>
 
       <Toaster toasts={toast.toasts} onDismiss={toast.dismiss} />

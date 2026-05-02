@@ -14,6 +14,7 @@
 
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/app/lib/prisma';
+import { getSession } from '@/app/lib/auth';
 
 export const dynamic = 'force-dynamic';
 
@@ -63,6 +64,17 @@ export async function POST(
     },
   });
 
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'CREATE_APPOINTMENT',
+      entityType: 'Appointment',
+      entityId: appointment.id,
+      details: `Created appointment "${title}" for patient ${id}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
+
   return NextResponse.json({ appointment }, { status: 201 });
 }
 
@@ -86,6 +98,17 @@ export async function PATCH(
   const updated = await prisma.appointment.update({
     where: { id: appointmentId },
     data:  { attended: Boolean(attended) },
+  });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'UPDATE_APPOINTMENT',
+      entityType: 'Appointment',
+      entityId: appointmentId,
+      details: `Updated attendance to ${Boolean(attended)} for appointment ${appointmentId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
   });
 
   return NextResponse.json({ appointment: updated });

@@ -37,6 +37,18 @@ export async function PUT(
       consentGiven: consentGiven != null ? !!consentGiven : undefined,
     },
   });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'UPDATE_FAMILY_MEMBER',
+      entityType: 'FamilyMember',
+      entityId: memberId,
+      details: `Updated family member ${memberId} for patient`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
+
   return NextResponse.json(updated);
 }
 
@@ -47,7 +59,19 @@ export async function DELETE(
   const deny = await requireAdmin();
   if (deny) return deny;
 
-  const { memberId } = await params;
+  const { id: patientId, memberId } = await params;
   await prisma.familyMember.delete({ where: { id: memberId } });
+
+  const session = await getSession();
+  await prisma.auditLog.create({
+    data: {
+      action: 'DELETE_FAMILY_MEMBER',
+      entityType: 'FamilyMember',
+      entityId: memberId,
+      details: `Deleted family member ${memberId} from patient ${patientId}`,
+      performedBy: session?.email || 'Unknown User',
+    }
+  });
+
   return NextResponse.json({ ok: true });
 }
