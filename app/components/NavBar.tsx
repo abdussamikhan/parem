@@ -7,12 +7,13 @@ import Link from 'next/link';
 import { usePathname } from 'next/navigation';
 import { useEffect, useState } from 'react';
 import { LogoutButton } from './LogoutButton';
-import { ShieldAlert, Activity, Users, LayoutGrid } from 'lucide-react';
+import { ShieldAlert, Activity, Users, LayoutGrid, Database } from 'lucide-react';
 
 const NAV_LINKS = [
   { href: '/triage',   label: 'Emergency Triage',     icon: ShieldAlert, accent: '#ef4444', roles: ['NURSE',  'ADMIN'] },
   { href: '/clinical', label: 'Clinical Intelligence', icon: Activity,    accent: '#6366f1', roles: ['PHYSICIAN', 'ADMIN'] },
   { href: '/family',   label: 'Family \u0026 Comms',   icon: Users,       accent: '#a855f7', roles: ['COORDINATOR', 'ADMIN'] },
+  { href: '/admin',    label: 'Admin Data',            icon: Database,    accent: '#10b981', roles: ['ADMIN'] },
 ] as const;
 
 const ROLE_COLORS: Record<string, string> = {

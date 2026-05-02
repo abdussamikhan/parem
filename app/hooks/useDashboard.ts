@@ -11,7 +11,7 @@ import { useEffect, useState, useCallback } from 'react';
 // ─── Types ────────────────────────────────────────────────────────────────────
 
 export type Patient = {
-  id: string; firstName: string; lastName: string; phone: string;
+  id: string; firstName: string; lastName: string; phone: string; mrn?: string | null;
   nextOfKinName?: string; nextOfKinPhone?: string;
   familyGroupMode: boolean; consentGiven: boolean;
   conditionCategory?: string;
@@ -19,7 +19,7 @@ export type Patient = {
 };
 
 export type SOSAlert = {
-  id: string; patient: Pick<Patient,'id'|'firstName'|'lastName'|'phone'>;
+  id: string; patient: Pick<Patient,'id'|'firstName'|'lastName'|'phone'|'mrn'>;
   patientMessage: string; alertSentAt?: string;
 };
 

@@ -1,0 +1,1 @@
+import { PrismaClient } from '@prisma/client'; const p = new PrismaClient(); p.patient.findMany({select:{phone:true,mrn:true}}).then(r=>console.log(r)).finally(()=>p.$disconnect());

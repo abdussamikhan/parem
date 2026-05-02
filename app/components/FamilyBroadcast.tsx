@@ -81,7 +81,7 @@ export function FamilyBroadcast({ patients, sending, broadcasting, results, onSe
                   <div className="fb-avatar">{p.firstName[0]}{p.lastName[0]}</div>
                   <div className="fb-patient-info">
                     <p className="fb-patient-name">{p.firstName} {p.lastName}</p>
-                    <p className="fb-nok-label">{nokLabel}</p>
+                    <p className="fb-nok-label">{p.mrn ? <span style={{fontFamily:'monospace',color:'#a5b4fc'}}>{p.mrn} &middot; </span> : ''}{nokLabel}</p>
                   </div>
                   <div className="fb-badges">
                     {p.familyGroupMode && <span className="fb-group-badge">Group</span>}

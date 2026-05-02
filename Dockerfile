@@ -1,10 +1,9 @@
 # Base image
-FROM node:20-alpine AS base
+FROM node:20-slim AS base
 
 # Install dependencies only when needed
 FROM base AS deps
-# Check https://github.com/nodejs/docker-node/tree/b4117f9333da4138b03a546ec926ef50a31506c3#nodealpine to understand why libc6-compat might be needed.
-RUN apk add --no-cache libc6-compat openssl
+RUN apt-get update && apt-get install -y openssl
 WORKDIR /app
 
 # Install dependencies
@@ -30,20 +29,20 @@ FROM base AS runner
 WORKDIR /app
 
 # Required for Prisma Runtime
-RUN apk add --no-cache openssl
+RUN apt-get update && apt-get install -y openssl
 
 ENV NODE_ENV production
 ENV NEXT_TELEMETRY_DISABLED 1
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+RUN groupadd --system --gid 1001 nodejs
+RUN useradd --system --uid 1001 --gid 1001 nextjs
 
 # Copy prisma stuff if we need DB access at runtime
 COPY --from=builder /app/prisma ./prisma
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
-COPY --from=builder /app/public ./public
+# COPY --from=builder /app/public ./public
 
 # Set the correct permission for prerender cache
 RUN mkdir .next

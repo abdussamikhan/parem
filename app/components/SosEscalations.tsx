@@ -67,7 +67,7 @@ export function SosEscalations({ alerts, acknowledging, onAcknowledge }: Props) 
                       <p className="sos-name">{sos.patient.firstName} {sos.patient.lastName}</p>
                       <div className="sos-meta-row">
                         <Phone size={10} color="rgba(255,255,255,.35)" />
-                        <span className="sos-phone">{sos.patient.phone}</span>
+                        <span className="sos-phone">{sos.patient.phone} {sos.patient.mrn ? <span style={{fontFamily:'monospace',color:'#fca5a5'}}>&middot; {sos.patient.mrn}</span> : ''}</span>
                         <span className="sos-sev-chip" style={{ background: `${sev.color}22`, color: sev.color }}>{sev.label}</span>
                       </div>
                     </div>

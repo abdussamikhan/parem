@@ -5,9 +5,8 @@
  * Grayed out if the user's role doesn't have access.
  */
 import { getSession } from '@/app/lib/auth';
-import { ROLE_ROUTES } from '@/app/lib/auth';
 import Link from 'next/link';
-import { ShieldAlert, Activity, Users, ArrowRight, Lock } from 'lucide-react';
+import { ShieldAlert, Activity, Users, ArrowRight, Lock, Database } from 'lucide-react';
 
 const ROLE_CARDS = [
   {
@@ -45,6 +44,18 @@ const ROLE_CARDS = [
     bg:          'rgba(168,85,247,.06)',
     border:      'rgba(168,85,247,.2)',
     roles:       ['COORDINATOR', 'ADMIN'],
+  },
+  {
+    href:        '/admin',
+    label:       'Admin Data Manager',
+    description: 'CRUD management for patients, family members, and medications.',
+    roleLabel:   'Admin only',
+    icon:        Database,
+    gradient:    'linear-gradient(135deg, #10b981 0%, #0284c7 100%)',
+    glow:        'rgba(16,185,129,.35)',
+    bg:          'rgba(16,185,129,.06)',
+    border:      'rgba(16,185,129,.2)',
+    roles:       ['ADMIN'],
   },
 ] as const;
 

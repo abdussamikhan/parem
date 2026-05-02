@@ -14,6 +14,7 @@ model Patient {
   age               Int
   gender            String
   phone             String            @unique
+  mrn               String?           @unique
   nextOfKinName     String?
   nextOfKinPhone    String?
   wakeTime          String?

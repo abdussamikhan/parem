@@ -16,6 +16,7 @@ async function main() {
       age:           65,
       gender:        'Male',
       phone:         '+966500000001',
+      mrn:           'MRN-0001',
       nextOfKinName: 'Fatima Al-Farsi',
       nextOfKinPhone:'+966500000002',
       wakeTime:      '06:00',
@@ -52,6 +53,7 @@ async function main() {
       age:           55,
       gender:        'Female',
       phone:         '+966500000003',
+      mrn:           'MRN-0002',
       nextOfKinName: 'Omar Al-Qahtani',
       nextOfKinPhone:'+966500000004',
       wakeTime:      '07:00',
@@ -85,6 +87,7 @@ async function main() {
       age:              72,
       gender:           'Male',
       phone:            '+966500000020',
+      mrn:              'MRN-0003',
       nextOfKinName:    'Nora Al-Rashidi',
       nextOfKinPhone:   '+966500000021',
       wakeTime:         '05:30',
@@ -123,6 +126,7 @@ async function main() {
       age:              68,
       gender:           'Female',
       phone:            '+966500000022',
+      mrn:              'MRN-0004',
       nextOfKinName:    'Abdullah Al-Dosari',
       nextOfKinPhone:   '+966500000023',
       wakeTime:         '06:00',
@@ -153,6 +157,7 @@ async function main() {
       age:              80,
       gender:           'Male',
       phone:            '+966500000024',
+      mrn:              'MRN-0005',
       nextOfKinName:    'Salma Al-Otaibi',
       nextOfKinPhone:   '+966500000025',
       wakeTime:         '07:00',
@@ -193,6 +198,7 @@ async function main() {
     age:           40 + i,
     gender:        i % 2 === 0 ? 'Male' : 'Female',
     phone:         `+96650000001${i}`,
+    mrn:           `MRN-900${i}`,
     nextOfKinName: `NOK${i + 3}`,
     nextOfKinPhone:`+96650000002${i}`,
     wakeTime:      '06:30',
@@ -221,7 +227,7 @@ async function main() {
     const { medicines, ...data } = patient
     const created = await prisma.patient.upsert({
       where:  { phone: data.phone },
-      update: {},
+      update: { mrn: data.mrn },
       create: { ...data, medicines },
     })
     console.log(`  ✓ ${created.firstName} ${created.lastName} (${created.phone})`)

@@ -40,7 +40,7 @@ export const ROLE_ROUTES: Record<UserRole, string[]> = {
   NURSE:       ['/triage'],
   PHYSICIAN:   ['/clinical'],
   COORDINATOR: ['/family'],
-  ADMIN:       ['/triage', '/clinical', '/family'],
+  ADMIN:       ['/triage', '/clinical', '/family', '/admin'],
 };
 
 /** Returns true if the given role is permitted to access `pathname`. */

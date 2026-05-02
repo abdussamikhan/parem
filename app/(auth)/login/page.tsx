@@ -5,11 +5,11 @@
  */
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, Suspense } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
 import { Loader2, Eye, EyeOff, AlertCircle } from 'lucide-react';
 
-export default function LoginPage() {
+function LoginContent() {
   const router       = useRouter();
   const searchParams = useSearchParams();
   const from         = searchParams.get('from') ?? '/';
@@ -388,5 +388,19 @@ export default function LoginPage() {
         }
       `}</style>
     </div>
+  );
+}
+
+export default function LoginPage() {
+  return (
+    <Suspense fallback={
+      <div className="login-root">
+        <div className="login-card login-card-visible" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}>
+          <Loader2 size={32} className="animate-spin" color="#6366f1" />
+        </div>
+      </div>
+    }>
+      <LoginContent />
+    </Suspense>
   );
 }

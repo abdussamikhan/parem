@@ -107,7 +107,7 @@ export function PatientList({ patients, riskLeaderboard = [] }: Props) {
                   <div className="pl-avatar">{p.firstName[0]}{p.lastName[0]}</div>
                   <div className="pl-info">
                     <p className="pl-name">{p.firstName} {p.lastName}</p>
-                    <p className="pl-meta">{p.conditionCategory ?? 'General'} · {p.medicines?.length ?? 0} Rx</p>
+                    <p className="pl-meta">{p.mrn ? <span style={{fontFamily:'monospace',color:'#a5b4fc'}}>{p.mrn} &middot; </span> : ''}{p.conditionCategory ?? 'General'} · {p.medicines?.length ?? 0} Rx</p>
                   </div>
                   <div className="pl-badges">
                     {pRisk && (
